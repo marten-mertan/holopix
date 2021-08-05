@@ -11,7 +11,7 @@
                  @mouseenter="mouseEnter(cell)">
                 <svg v-if="cell.icon" 
                      :class="cell.icon">
-                    <use :xlink:href="'n/assets/icons/all.svg#' + cell.icon" />
+                    <use :xlink:href="'icons/all.svg#' + cell.icon" />
                 </svg>
             </div>
         </div>
