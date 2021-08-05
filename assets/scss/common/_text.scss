@@ -1,0 +1,47 @@
+/* Text */
+
+.h1 {
+    font-size: 40px;
+}
+
+.h2 {
+    font-size: 24px;
+}
+
+.h3 {
+    font-size: 20px;
+}
+
+.h4 {
+    font-size: 18px;
+}
+
+.h5 {
+    font-size: 16px;
+}
+
+.h6 {
+    font-size: 14px;
+}
+
+p {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.text {
+    font-size: 14px;
+    line-height: 1.5;
+
+    p {
+        margin-bottom: 16px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+/* Colors */
+
+/* Weight */

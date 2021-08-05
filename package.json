@@ -1,0 +1,43 @@
+{
+    "name": "NuxtTemplate",
+    "version": "1.0.0",
+    "description": "Nuxt Template",
+    "author": "Mertan",
+    "private": true,
+    "scripts": {
+        "dev": "nuxt -H 0.0.0.0",
+        "build": "nuxt build",
+        "start": "nuxt start -H 0.0.0.0",
+        "generate": "nuxt generate",
+        "update": "ncu -u"
+    },
+    "dependencies": {
+        "@nuxtjs/axios": "^5.12.2",
+        "@nuxtjs/proxy": "^2.0.1",
+        "intersection-observer": "^0.11.0",
+        "normalize.css": "^8.0.1",
+        "nuxt": "^2.14.6",
+        "nuxt-polyfill": "^1.0.3",
+        "resize-observer-polyfill": "^1.5.1",
+        "smoothscroll-polyfill": "^0.4.4",
+        "vue-lazyload": "^1.3.3"
+    },
+    "devDependencies": {
+        "@nuxtjs/eslint-module": "^2.0.0",
+        "@nuxtjs/style-resources": "^1.0.0",
+        "@nuxtjs/stylelint-module": "^4.0.0",
+        "babel-eslint": "^10.1.0",
+        "cross-env": "^7.0.2",
+        "eslint": "^7.9.0",
+        "eslint-plugin-vue": "^7.0.0-beta.0",
+        "node-sass": "^4.14.1",
+        "nodemon": "^2.0.4",
+        "npm-check-updates": "^9.0.2",
+        "prettier": "2.1.2",
+        "sass-loader": "^10.0.2",
+        "stylelint": "^13.7.1",
+        "stylelint-config-css-modules": "^2.2.0",
+        "stylelint-config-standard": "^20.0.0",
+        "stylelint-scss": "^3.18.0"
+    }
+}

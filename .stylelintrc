@@ -1,0 +1,53 @@
+{
+    "extends": [
+        "stylelint-config-standard",
+        "stylelint-config-css-modules"
+    ],
+    "plugins": [
+        "stylelint-scss"
+    ],
+    "rules": {
+        "at-rule-no-unknown": null,
+        "scss/at-rule-no-unknown": true,
+        "at-rule-empty-line-before": [
+            "always", {
+                "except": [
+                    "blockless-after-same-name-blockless",
+                    "first-nested",
+                ],
+                "ignore": [
+                    "after-comment",
+                ],
+                "ignoreAtRules": ["if", "else"]
+            }
+        ],
+        "rule-empty-line-before": [
+            "always", {
+                "except": [
+                    "first-nested"
+                ],
+                "ignore": [
+                    "after-comment"
+                ]
+            }
+        ],
+        "comment-empty-line-before": "always",
+        "block-closing-brace-newline-before": "always",
+        "block-closing-brace-newline-after": [
+            "always", {
+                "ignoreAtRules": ["if", "else"]
+            }
+        ],
+        "declaration-no-important": true,
+        "no-descending-specificity": null,
+        "value-no-vendor-prefix": true,
+        "selector-no-vendor-prefix": true,
+        "selector-pseudo-element-colon-notation": "single",
+        "indentation": [
+            4, {
+                baseIndentLevel: 1
+            }
+        ],
+        number-leading-zero: null
+    }
+}
