@@ -1,7 +1,8 @@
 <template>
     <div class="game">
         <div ref="game-table"
-             class="game-table">
+             class="game-table"
+             :class="[refreshing ? 'in-refreshing' : null]">
             <div v-for="cell in cells" 
                  :key="cell.id"
                  class="game-table-cell"
@@ -15,10 +16,17 @@
                 </svg>
             </div>
         </div>
-        <button @click="refreshGame">
-            TRY AGAIN
-        </button>
-        {{ printCurrentPath() }}
+        <div class="game-controls">
+            <button class="game-btn"
+                    @click="refreshGame">
+                NEW
+            </button>
+            <span class="game-score">Раунд: 0</span>
+            <button class="game-btn"
+                    @click="refreshGame">
+                TRY AGAIN
+            </button>
+        </div>
     </div>
 </template>
 
@@ -30,16 +38,18 @@
         data() {
             return {
                 tableWidth: 6,
-                tableHeight: 4,
+                tableHeight: 6,
+                cellWidth: 80,
                 cells: [],
                 currentPath: [],
                 currentColorClass: '',
                 paths: [],
+                refreshing: false,
             };
         },
         mounted() {
             const len = this.tableWidth * this.tableHeight;
-            this.$refs['game-table'].style.width = ` ${this.tableWidth * 80}px`;
+            this.$refs['game-table'].style.width = ` ${this.tableWidth * this.cellWidth}px`;
             for (let i=0; i<len; i++) {
                 const item = {
                     id: i,
@@ -118,15 +128,19 @@
                 }
             },
             refreshGame() {
-                this.currentPat = [];
-                this.currentColorClass = '';
-                this.paths = [];
-                for (const item of this.cells) {
-                    this.cells[item.id].used = false;
-                    if (!item.value) {
-                        this.cells[item.id].colorClass = '';
+                this.refreshing = true;
+                setTimeout(() => {
+                    this.currentPat = [];
+                    this.currentColorClass = '';
+                    this.paths = [];
+                    for (const item of this.cells) {
+                        this.cells[item.id].used = false;
+                        if (!item.value) {
+                            this.cells[item.id].colorClass = '';
+                        }
                     }
-                }
+                    this.refreshing = false;
+                }, 150);
             },
 
             // техническая
@@ -150,43 +164,139 @@
 
 <style lang="scss">
     .game {
+        position: relative;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding: 20px;
+        padding: 30px;
+        background-color: #1fa3de;
+        border-radius: 3px;
+        border: 18px solid white;
+        box-shadow: 0 0 6px rgba(0, 0, 0, .12), 0 1px 6px rgba(0, 0, 0, .24);
+        z-index: 2;
 
         &-table {
             display: flex;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            box-sizing: content-box;
+
+            &.in-refreshing {
+                .game-table-cell {
+                    transform: rotate3d(1, 1, 0, 90deg);
+                }
+            }
 
             &-cell {
+                position: relative;
                 flex: 0 0 auto;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 width: 80px;
                 height: 80px;
-                border: 3px solid #c8c8c8;
-                background-color: #fefefe;
+                border: 1px solid rgba(255, 255, 255, .55);
                 user-select: none;
-                border-radius: 20px;
+                border-radius: 12px;
+                overflow: hidden;
+                cursor: pointer;
+                z-index: 1;
+                transition: transform .15s ease;
+
+                &:before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: rgba(255, 255, 255, .15);
+                    backdrop-filter: blur(50px);
+                    z-index: 1;
+                }
 
                 svg {
-                    width: 40px;
-                    height: 40px;
+                    position: relative;
+                    width: 50px;
+                    height: 50px;
+                    z-index: 2;
                 }
 
                 &.marine {
                     background-color: #c23b64;
                     border-color: #492727;
+
+                    &:before {
+                        background-color: rgba(255, 255, 255, 0);
+                        backdrop-filter: blur(0);
+                    }
                 }
 
                 &.aqua {
                     background-color: #c67cf1;
                     border-color: #97e6fa;
+
+                    &:before {
+                        background-color: rgba(255, 255, 255, 0);
+                        backdrop-filter: blur(0);
+                    }
                 }
+            }
+        }
+
+        &-controls {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        &-score {
+            color: white;
+            letter-spacing: 2px;
+            font-size: 14px;
+            font-weight: 300;
+            margin-right: 20px;
+        }
+
+        &-btn {
+            position: relative;
+            padding: 20px 24px;
+            background-color: rgba(255, 255, 255, .15);
+            backdrop-filter: blur(50px);
+            cursor: pointer;
+            overflow: hidden;
+            letter-spacing: 2px;
+            font-size: 12px;
+            font-weight: 300;
+            color: white;
+            min-width: 150px;
+            transition: background-color .2s ease-in-out;
+
+            &:not(:last-child) {
+                margin-right: 20px;
+            }
+
+            &:hover {
+                background-color: rgba(255, 255, 255, .25);
+
+                &:before {
+                    left: 0;
+                }
+            }
+
+            &:before {
+                display: block;
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: -100%;
+                width: 100%;
+                height: 1px;
+                background-color: white;
+                transition: left .2s ease-in-out;
             }
         }
     }

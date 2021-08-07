@@ -21,7 +21,7 @@
         left: 0;
         z-index: 15;
         width: 100%;
-        background: #af7eeb;
+        background-color: rgba(white, .92);
 
         &-wrap {
             display: flex;
@@ -31,11 +31,11 @@
         }
 
         &__title {
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: 1px;
+            font-size: 30px;
+            font-weight: 300;
+            letter-spacing: 3px;
             padding: 20px;
-            color: white;
+            color: #1fa3de;
         }
     }
 </style>
