@@ -18,6 +18,10 @@ module.exports = {
         },
     },
 
+    generate: {
+        dir: '/holopix/'
+    },
+
     /**
      * В env добавить 2 переменные HTTPS_KEY и HTTPS_CERT, которые являются путями до сертификатов
      */

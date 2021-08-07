@@ -31,7 +31,7 @@
         align-items: center;
         justify-content: center;
         min-height: calc(100vh - 32px);
-        background-image: url('/img/back.svg');
+        background-image: url('/holopix/img/back.svg');
         background-repeat: no-repeat;
         background-position: center center;
         background-size: 100% 100%;
