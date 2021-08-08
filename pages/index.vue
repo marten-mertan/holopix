@@ -1,11 +1,11 @@
 <template>
     <div class="home">
         <Game />
-        <div class="korone">
-            <img class="korone-shadow"
+        <div class="korone-decor">
+            <img class="korone-decor-shadow"
                  src="img/korone.png" 
                  alt="">
-            <img class="korone-img" 
+            <img class="korone-decor-img" 
                  src="img/korone.png" 
                  alt="">
         </div>
@@ -38,7 +38,7 @@
         background-size: cover;
         padding-top: 64px;
 
-        .korone {
+        .korone-decor {
             position: absolute;
             bottom: -4px;
             left: 0;
