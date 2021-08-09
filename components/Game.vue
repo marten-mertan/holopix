@@ -10,11 +10,12 @@
         </div>
         <div ref="game-table"
              class="game-table"
-             :class="[refreshing ? 'in-refreshing' : null]">
+             :class="[refreshing ? 'in-refreshing' : null, creating ? 'in-creating' : null]">
             <div v-for="cell in cells" 
                  :key="cell.id"
                  class="game-table-cell"
                  :class="[cell.used ? cell.colorClass : null]"
+                 :style="creating ? null : {top: cell.y*cellWidth+'px', left: cell.x*cellWidth+'px'}"
                  @mousedown="mouseDown(cell)"
                  @mouseup="mouseUp(cell)"
                  @mouseenter="mouseEnter(cell)">
@@ -22,6 +23,20 @@
                      :class="cell.icon">
                     <use :xlink:href="'icons/all.svg#' + cell.icon" />
                 </svg>
+            </div>
+            <div ref="game-table-dashbox"
+                 class="game-table-dashbox"
+                 :class="[currentPath.length ? 'visible' : null, currentColorClass]">
+                <svg id="icon-dashbox" 
+                     viewBox="0 0 72 72">
+                    <rect x="1" 
+                          y="1" 
+                          rx="8" 
+                          ry="8" 
+                          width="70" 
+                          height="70" />
+                </svg>
+
             </div>
         </div>
         <div class="game-controls">
@@ -52,12 +67,14 @@
                 currentPath: [],
                 currentColorClass: '',
                 paths: [],
+                creating: false,
                 refreshing: false,
                 round: 0
             };
         },
         mounted() {
             this.$refs['game-table'].style.width = ` ${this.tableWidth * this.cellWidth}px`;
+            this.$refs['game-table'].style.height = ` ${this.tableHeight * this.cellWidth}px`;
             this.currentPath = [];
             this.currentColorClass = '';
             this.paths = [];
@@ -71,6 +88,8 @@
                     this.currentColorClass = cell.colorClass;
                     this.cells[cell.id].used = true;
                     this.currentPath.push(cell);
+                    this.$refs['game-table-dashbox'].style.left = `${cell.x*this.cellWidth}px`;
+                    this.$refs['game-table-dashbox'].style.top = `${cell.y*this.cellWidth}px`;
                 }
             },
             mouseEnter(cell) {
@@ -85,6 +104,8 @@
                     if (!this.cells[previousCell?.id].value) {
                         this.cells[previousCell?.id].colorClass = '';
                     }
+                    this.$refs['game-table-dashbox'].style.left = `${cell.x*this.cellWidth}px`;
+                    this.$refs['game-table-dashbox'].style.top = `${cell.y*this.cellWidth}px`;
                     this.currentPath.pop();
                     return;
                 }
@@ -93,12 +114,15 @@
                 if (previousCell?.id !== cell.id && 
                     ((previousCell?.x === cell.x && Math.abs(previousCell?.y - cell.y) === 1) || (previousCell?.y === cell.y && Math.abs(previousCell?.x - cell.x) === 1)) && 
                     !cell.used && 
-                    (cell.value === 0 || cell.value === firstCellInPath.value)) {
+                    (cell.value === 0 || cell.value === firstCellInPath?.value) && 
+                    (previousCell?.value === 0 || (previousCell?.value === firstCellInPath?.value && previousCell?.id === firstCellInPath?.id))) {
                     this.cells[previousCell.id].used = true;
                     if (!this.cells[cell.id].value) {
                         this.cells[cell.id].colorClass = this.currentColorClass;
                     }
                     this.cells[cell.id].used = true;
+                    this.$refs['game-table-dashbox'].style.left = `${cell.x*this.cellWidth}px`;
+                    this.$refs['game-table-dashbox'].style.top = `${cell.y*this.cellWidth}px`;
                     this.currentPath.push(cell);
                 }
             },
@@ -140,7 +164,7 @@
                 }, 200);
             },
             newGame() {
-                this.refreshing = true;
+                this.creating = true;
                 setTimeout(() => {
                     this.currentPath = [];
                     this.currentColorClass = '';
@@ -148,11 +172,11 @@
                     this.round = 0;
                     this.cells = this.generateCells();
 
-                    this.refreshing = false;
-                }, 200);
+                    this.creating = false;
+                }, 600);
             },
             nextRound() {
-                this.refreshing = true;
+                this.creating = true;
                 setTimeout(() => {
                     this.currentPath = [];
                     this.currentColorClass = '';
@@ -160,8 +184,8 @@
                     this.round++;
                     this.cells = this.generateCells();
 
-                    this.refreshing = false;
-                }, 200);
+                    this.creating = false;
+                }, 600);
             },
             generateCells() {
                 const len = this.tableWidth * this.tableHeight;
@@ -297,6 +321,7 @@
         }
 
         &-table {
+            position: relative;
             display: flex;
             flex-wrap: wrap;
             margin-bottom: 10px;
@@ -305,11 +330,21 @@
             &.in-refreshing {
                 .game-table-cell {
                     transform: rotate3d(1, 1, 0, 90deg);
+                    transition: transform .15s ease;
+                }
+            }
+
+            &.in-creating {
+                .game-table-cell {
+                    top: calc(50% - 40px);
+                    left: calc(50% - 40px);
+                    transform: rotate3d(0, 0, 1, 360deg);
+                    transition: transform .6s ease, top .6s ease, left .6s ease;
                 }
             }
 
             &-cell {
-                position: relative;
+                position: absolute;
                 flex: 0 0 auto;
                 display: flex;
                 justify-content: center;
@@ -322,7 +357,7 @@
                 overflow: hidden;
                 cursor: pointer;
                 z-index: 1;
-                transition: transform .15s ease;
+                transition: transform .3s ease, top .6s ease, left .6s ease;
 
                 &:before {
                     content: '';
@@ -403,6 +438,47 @@
                     }
                 }
             }
+
+            &-dashbox {
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 2;
+                pointer-events: none;
+                width: 80px;
+                height: 80px;
+                padding: 4px;
+
+                &.visible {
+                    svg {
+                        opacity: 1;
+                        animation: spinner 4s infinite linear;
+                    }
+                }
+
+                &.korone {
+                    svg {
+                        stroke: #c23b64;
+                    }
+                }
+
+                &.fubuki {
+                    svg {
+                        stroke: #096b75;
+                    }
+                }
+
+                svg {
+                    width: 72px;
+                    height: 72px;
+                    fill: transparent;
+                    stroke: white;
+                    stroke-width: 1;
+                    opacity: 0;
+                    stroke-dasharray: 20 14.125;
+                    stroke-dashoffset: 227.9;
+                }
+            }
         }
 
         &-controls {
@@ -458,6 +534,16 @@
                 background-color: white;
                 transition: left .2s ease-in-out;
             }
+        }
+    }
+
+    @keyframes spinner {
+        0% {
+            stroke-dashoffset: 273;
+        }
+
+        100% {
+            stroke-dashoffset: 0;
         }
     }
 </style>
