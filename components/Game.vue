@@ -142,7 +142,7 @@
                 }
                 this.currentPath = [];
                 if (this.allSellsUsed(this.cells)) {
-                    console.log('victory!!');
+                    this.$emit('speak', this.speaking);
                     this.nextRound();
                 }
             },
@@ -160,6 +160,7 @@
                             this.cells[item.id].colorClass = '';
                         }
                     }
+
                     this.refreshing = false;
                 }, 200);
             },
