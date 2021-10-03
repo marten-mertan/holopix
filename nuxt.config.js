@@ -4,7 +4,7 @@ import {plugins} from './config/plugins';
 import {proxy} from './config/proxy';
 
 module.exports = {
-    target: 'static',
+    target: 'server',
     telemetry: false,
 
     publicRuntimeConfig: {
