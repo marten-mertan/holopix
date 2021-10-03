@@ -13,16 +13,16 @@
              :class="[refreshing ? 'in-refreshing' : null, creating ? 'in-creating' : null]">
             <div v-for="cell in cells" 
                  :key="cell.id"
+                 :num="cell.id"
                  class="game-table-cell"
                  :class="[cell.used ? cell.colorClass : null]"
                  :style="creating ? {width: cellWidth+'px', height: cellWidth+'px'} : {top: cell.y*cellWidth+'px', left: cell.x*cellWidth+'px', width: cellWidth+'px', height: cellWidth+'px'}"
-                 @mousedown="mouseDown(cell)"
                  @mouseup="mouseUp(cell)"
-                 @mouseenter="mouseEnter(cell)"
+                 @mousedown="mouseDown(cell)"
+                 @mousemove="mouseEnter(cell)"
                  @touchstart="mouseDown(cell)"
-                 @touchend="mouseUp(cell)"
-                 @touchmove="mouseEnter(cell)"
-                 @touchenter="mouseEnter(cell)">
+                 @touchend="touchUp($event)"
+                 @touchmove="touchEnter($event)">
                 <svg v-if="cell.icon" 
                      :class="cell.icon">
                     <use :xlink:href="'icons/all.svg#' + cell.icon" />
@@ -132,8 +132,71 @@
                     this.$refs['game-table-dashbox'].style.top = `${cell.y*this.cellWidth}px`;
                 }
             },
-            touchEnter(cell) {
-                console.log('touched!!!', cell);
+            touchEnter(event) {
+                let p = event.touches[0];
+                let el = document.elementFromPoint(p.clientX, p.clientY);
+                if (!el.classList.contains('game-table-cell')) {
+                    return;
+                }
+                const cell = this.cells[el.getAttribute('num')];
+                const len = this.currentPath.length;
+                const previousCell = this.currentPath[len - 1];
+                const stepBackCell = this.currentPath[len - 2];
+                const firstCellInPath = this.currentPath[0];
+
+                // когда возвращаемся обратно на предыдущую ячейку
+                if (stepBackCell?.id === cell.id) {
+                    this.cells[previousCell?.id].used = false;
+                    if (!this.cells[previousCell?.id].value) {
+                        this.cells[previousCell?.id].colorClass = '';
+                    }
+                    this.$refs['game-table-dashbox'].style.left = `${cell.x*this.cellWidth}px`;
+                    this.$refs['game-table-dashbox'].style.top = `${cell.y*this.cellWidth}px`;
+                    this.currentPath.pop();
+                    return;
+                }
+
+                // проверка ячейки на валидность и запись ячейки в текущий путь
+                if (previousCell?.id !== cell.id && 
+                    ((previousCell?.x === cell.x && Math.abs(previousCell?.y - cell.y) === 1) || (previousCell?.y === cell.y && Math.abs(previousCell?.x - cell.x) === 1)) && 
+                    !cell.used && 
+                    (cell.value === 0 || cell.value === firstCellInPath?.value) && 
+                    (previousCell?.value === 0 || (previousCell?.value === firstCellInPath?.value && previousCell?.id === firstCellInPath?.id))) {
+                    this.cells[previousCell.id].used = true;
+                    if (!this.cells[cell.id].value) {
+                        this.cells[cell.id].colorClass = this.currentColorClass;
+                    }
+                    this.cells[cell.id].used = true;
+                    this.$refs['game-table-dashbox'].style.left = `${cell.x*this.cellWidth}px`;
+                    this.$refs['game-table-dashbox'].style.top = `${cell.y*this.cellWidth}px`;
+                    this.currentPath.push(cell);
+                }
+            },
+            touchUp(event) {
+                let p = event.changedTouches[0];
+                let el = document.elementFromPoint(p.clientX, p.clientY);
+                if (!el.classList.contains('game-table-cell')) {
+                    return;
+                }
+                const cell = this.cells[el.getAttribute('num')];
+                const len = this.currentPath.length;
+                const firstCellInPath = this.currentPath[0];
+                const lastCell = this.currentPath[len - 1];
+                if (cell.value === firstCellInPath?.value && cell.id !== firstCellInPath?.id && cell.id === lastCell.id) {
+                    this.paths.push(this.currentPath);
+                    for (const item of this.currentPath) {
+                        this.cells[item.id].used = true;
+                    }
+                } else {
+                    for (const item of this.currentPath) {
+                        this.cells[item.id].used = false;
+                    }
+                }
+                this.currentPath = [];
+                if (this.allSellsUsed(this.cells)) {
+                    this.$emit('speak', this.speaking);
+                    this.nextRound();
+                }
             },
             mouseEnter(cell) {
                 const len = this.currentPath.length;
@@ -438,6 +501,7 @@
                 cursor: pointer;
                 z-index: 1;
                 transition: transform .3s ease, top .6s ease, left .6s ease;
+                touch-action: none;
 
                 &:before {
                     content: '';
@@ -449,6 +513,7 @@
                     background-color: rgba(255, 255, 255, .15);
                     backdrop-filter: blur(50px);
                     z-index: 1;
+                    touch-action: none;
                 }
 
                 svg {
@@ -456,6 +521,7 @@
                     width: 46px;
                     height: 46px;
                     z-index: 2;
+                    touch-action: none;
 
                     @media screen and (max-width: 720px) {
                         width: 32px;
