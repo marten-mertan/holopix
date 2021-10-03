@@ -15,10 +15,14 @@
                  :key="cell.id"
                  class="game-table-cell"
                  :class="[cell.used ? cell.colorClass : null]"
-                 :style="creating ? null : {top: cell.y*cellWidth+'px', left: cell.x*cellWidth+'px'}"
+                 :style="creating ? {width: cellWidth+'px', height: cellWidth+'px'} : {top: cell.y*cellWidth+'px', left: cell.x*cellWidth+'px', width: cellWidth+'px', height: cellWidth+'px'}"
                  @mousedown="mouseDown(cell)"
                  @mouseup="mouseUp(cell)"
-                 @mouseenter="mouseEnter(cell)">
+                 @mouseenter="mouseEnter(cell)"
+                 @touchstart="mouseDown(cell)"
+                 @touchend="mouseUp(cell)"
+                 @touchmove="mouseEnter(cell)"
+                 @touchenter="mouseEnter(cell)">
                 <svg v-if="cell.icon" 
                      :class="cell.icon">
                     <use :xlink:href="'icons/all.svg#' + cell.icon" />
@@ -26,7 +30,8 @@
             </div>
             <div ref="game-table-dashbox"
                  class="game-table-dashbox"
-                 :class="[currentPath.length ? 'visible' : null, currentColorClass]">
+                 :class="[currentPath.length ? 'visible' : null, currentColorClass]"
+                 :style="{width: cellWidth+'px', height: cellWidth+'px'}">
                 <svg id="icon-dashbox" 
                      viewBox="0 0 72 72">
                     <rect x="1" 
@@ -37,6 +42,30 @@
                           height="70" />
                 </svg>
 
+            </div>
+        </div>
+        <div class="game-slider-b">
+            <div class="game-slider">
+                <div class="game-slider-label">
+                    Field size: {{ cellCount }} x {{ cellCount }}
+                </div>
+                <input v-model="cellCount"
+                       type="range" 
+                       min="4" 
+                       max="7"
+                       value="6"
+                       class="game-slider-track">
+            </div>
+            <div class="game-slider">
+                <div class="game-slider-label">
+                    Number of icons : {{ iconCount }}
+                </div>
+                <input v-model="iconCount"
+                       type="range" 
+                       min="1" 
+                       max="5"
+                       value="5"
+                       class="game-slider-track">
             </div>
         </div>
         <div class="game-controls">
@@ -60,10 +89,14 @@
         },
         data() {
             return {
-                tableWidth: 6,
-                tableHeight: 6,
+                window: {
+                    width: 0,
+                    height: 0
+                },
                 cellWidth: 80,
                 cells: [],
+                cellCount: '6',
+                iconCount: '5',
                 currentPath: [],
                 currentColorClass: '',
                 paths: [],
@@ -73,15 +106,22 @@
             };
         },
         mounted() {
-            this.$refs['game-table'].style.width = ` ${this.tableWidth * this.cellWidth}px`;
-            this.$refs['game-table'].style.height = ` ${this.tableHeight * this.cellWidth}px`;
+            window.addEventListener('resize', this.handleResize);
+            this.handleResize();
             this.currentPath = [];
             this.currentColorClass = '';
             this.paths = [];
             this.round = 0;
             this.cells = this.generateCells();
         },
+        destroyed() {
+            window.removeEventListener('resize', this.handleResize);
+        },
         methods: {
+            handleResize() {
+                const cellWidth = this.$refs['game-table'].offsetWidth / this.cellCount;
+                this.cellWidth = cellWidth;
+            },
             mouseDown(cell) {
                 if (cell.value && !this.cells[cell.id].used) {
                     this.currentPath = [];
@@ -91,6 +131,9 @@
                     this.$refs['game-table-dashbox'].style.left = `${cell.x*this.cellWidth}px`;
                     this.$refs['game-table-dashbox'].style.top = `${cell.y*this.cellWidth}px`;
                 }
+            },
+            touchEnter(cell) {
+                console.log('touched!!!', cell);
             },
             mouseEnter(cell) {
                 const len = this.currentPath.length;
@@ -147,50 +190,59 @@
                 }
             },
             refreshGame() {
-                this.refreshing = true;
-                setTimeout(() => {
-                    this.currentPath = [];
-                    this.currentColorClass = '';
-                    this.paths = [];
-                    for (const item of this.cells) {
-                        if (item.value !== -1) {
-                            this.cells[item.id].used = false;
+                if (!this.refreshing) {
+                    this.refreshing = true;
+                    setTimeout(() => {
+                        this.currentPath = [];
+                        this.currentColorClass = '';
+                        this.paths = [];
+                        for (const item of this.cells) {
+                            if (item.value !== -1) {
+                                this.cells[item.id].used = false;
+                            }
+                            if (!item.value) {
+                                this.cells[item.id].colorClass = '';
+                            }
                         }
-                        if (!item.value) {
-                            this.cells[item.id].colorClass = '';
-                        }
-                    }
 
-                    this.refreshing = false;
-                }, 200);
+                        this.refreshing = false;
+                    }, 200);
+                }
             },
             newGame() {
-                this.creating = true;
-                setTimeout(() => {
-                    this.currentPath = [];
-                    this.currentColorClass = '';
-                    this.paths = [];
-                    this.round = 0;
-                    this.cells = this.generateCells();
-
-                    this.creating = false;
-                }, 600);
+                if (!this.creating) {
+                    this.creating = true;
+                    setTimeout(() => {
+                        this.currentPath = [];
+                        this.currentColorClass = '';
+                        this.paths = [];
+                        this.round = 0;
+                        this.cells = this.generateCells();
+                    }, 600);
+                    setTimeout(() => {
+                        this.creating = false;
+                    }, 700);
+                }
             },
             nextRound() {
-                this.creating = true;
-                setTimeout(() => {
-                    this.currentPath = [];
-                    this.currentColorClass = '';
-                    this.paths = [];
-                    this.round++;
-                    this.cells = this.generateCells();
+                if (!this.creating) {
+                    this.creating = true;
+                    setTimeout(() => {
+                        this.currentPath = [];
+                        this.currentColorClass = '';
+                        this.paths = [];
+                        this.round++;
+                        this.cells = this.generateCells();
 
-                    this.creating = false;
-                }, 600);
+                        this.creating = false;
+                    }, 600);
+                }
             },
             generateCells() {
-                const len = this.tableWidth * this.tableHeight;
+                const len = this.cellCount * this.cellCount;
                 const cells = [];
+                const cellWidth = this.$refs['game-table'].offsetWidth / this.cellCount;
+                this.cellWidth = cellWidth;
                 let cellsUnused = [];
                 for (let i=0; i<len; i++) {
                     const item = {
@@ -199,14 +251,14 @@
                         colorClass: '',
                         icon: '',
                         used: false,
-                        x: Math.floor(i % this.tableWidth),
-                        y: Math.floor(i / this.tableWidth)
+                        x: Math.floor(i % this.cellCount),
+                        y: Math.floor(i / this.cellCount)
                     };
                     cells.push(item);
                     cellsUnused.push(item);
                 }
 
-                const girls = [
+                const availableGirls = [
                     {
                         value: 1,
                         colorClass: 'aqua',
@@ -233,6 +285,8 @@
                         icon: 'icon-korone'
                     },
                 ];
+
+                const girls = availableGirls.slice(0, this.iconCount);
 
                 while (cellsUnused.length) {
                     const randomEl = cellsUnused[Math.floor(Math.random()*cellsUnused.length)];
@@ -301,6 +355,13 @@
         box-shadow: 0 0 6px rgba(0, 0, 0, .12), 0 1px 6px rgba(0, 0, 0, .24);
         z-index: 2;
 
+        @media screen and (max-width: 720px) {
+            padding: 16px;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
         &-title {
             color: white;
             letter-spacing: 2px;
@@ -309,6 +370,12 @@
             font-weight: 300;
             margin-bottom: 12px;
             text-align: center;
+
+            @media screen and (max-width: 720px) {
+                font-size: 15px;
+                line-height: 15px;
+                margin-bottom: 10px;
+            }
         }
 
         &-rules {
@@ -319,14 +386,28 @@
             font-weight: 300;
             margin-bottom: 20px;
             text-align: center;
+
+            @media screen and (max-width: 720px) {
+                font-size: 12px;
+                line-height: 17px;
+                margin-bottom: 10px;
+                text-align: left;
+            }
         }
 
         &-table {
             position: relative;
             display: flex;
             flex-wrap: wrap;
+            width: 480px;
+            height: 480px;
             margin-bottom: 10px;
             box-sizing: content-box;
+
+            @media screen and (max-width: 720px) {
+                width: 300px;
+                height: 300px;
+            }
 
             &.in-refreshing {
                 .game-table-cell {
@@ -350,8 +431,6 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                width: 80px;
-                height: 80px;
                 border: 1px solid rgba(255, 255, 255, .55);
                 user-select: none;
                 border-radius: 12px;
@@ -377,6 +456,11 @@
                     width: 46px;
                     height: 46px;
                     z-index: 2;
+
+                    @media screen and (max-width: 720px) {
+                        width: 32px;
+                        height: 32px;
+                    }
                 }
 
                 &.marine {
@@ -446,8 +530,6 @@
                 left: 0;
                 z-index: 2;
                 pointer-events: none;
-                width: 80px;
-                height: 80px;
                 padding: 4px;
 
                 &.visible {
@@ -470,8 +552,6 @@
                 }
 
                 svg {
-                    width: 72px;
-                    height: 72px;
                     fill: transparent;
                     stroke: white;
                     stroke-width: 1;
@@ -488,6 +568,24 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 20px;
+
+            @media screen and (max-width: 720px) {
+                flex-direction: column;
+                align-items: flex-end;
+                margin-top: 10px;
+            }
+        }
+
+        &-slider-b {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+
+            @media screen and (max-width: 720px) {
+                margin-top: 10px;
+            }
         }
 
         &-score {
@@ -496,6 +594,61 @@
             font-size: 14px;
             font-weight: 300;
             margin-right: 20px;
+
+            @media screen and (max-width: 720px) {
+                font-size: 14px;
+                font-weight: bold;
+                order: -1;
+                margin-bottom: 20px;
+                margin-right: 0;
+            }
+        }
+
+        &-slider {
+            display: flex;
+            flex-direction: column;
+
+            &:not(:last-child) {
+                margin-right: 20px;
+            }
+
+            @media screen and (max-width: 720px) {
+                align-items: center;
+                margin-bottom: 10px;
+            }
+
+            &-label {
+                color: white;
+                letter-spacing: 2px;
+                font-size: 14px;
+                font-weight: 300;
+                margin-bottom: 16px;
+                white-space: nowrap;
+
+                @media screen and (max-width: 720px) {
+                    font-size: 11px;
+                    margin-bottom: 10px;
+                }
+            }
+
+            &-track {
+                height: 3px;
+                border-radius: 3px;
+                width: 200px;
+
+                @media screen and (max-width: 720px) {
+                    width: 136px;
+                }
+
+                &::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    width: 15px;
+                    height: 15px;
+                    border-radius: 50%;
+                    background: white;
+                    cursor: pointer;
+                }
+            }
         }
 
         &-btn {
@@ -514,6 +667,11 @@
 
             &:not(:last-child) {
                 margin-right: 20px;
+
+                @media screen and (max-width: 720px) {
+                    margin-right: 0;
+                    margin-bottom: 20px;
+                }
             }
 
             &:hover {

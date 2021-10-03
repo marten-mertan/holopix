@@ -28,6 +28,10 @@
             align-items: center;
             justify-content: center;
             height: $header-h;
+
+            @media screen and (max-width: 720px) {
+                height: $header-h-m;
+            }
         }
 
         &__title {
@@ -36,6 +40,11 @@
             letter-spacing: 3px;
             padding: 20px;
             color: #1fa3de;
+
+            @media screen and (max-width: 720px) {
+                font-size: 20px;
+                padding: 6px 12px;
+            }
         }
     }
 </style>
