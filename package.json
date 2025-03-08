@@ -9,7 +9,8 @@
         "build": "nuxt build",
         "start": "nuxt start -H 0.0.0.0",
         "generate": "nuxt generate",
-        "update": "ncu -u"
+        "update": "ncu -u",
+        "deploy": "git subtree push --prefix dist origin gh-pages "
     },
     "dependencies": {
         "@nuxtjs/axios": "^5.12.2",
