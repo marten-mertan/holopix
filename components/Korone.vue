@@ -49,11 +49,12 @@
 <style lang="scss">
     .korone-decor {
         position: absolute;
-        bottom: -4px;
+        bottom: -6px;
         left: 0;
         width: 360px;
         z-index: 1;
         cursor: pointer;
+        will-change: transform;
 
         @media screen and (max-width: 720px) {
             width: 180px;
